@@ -217,7 +217,6 @@ class Aplication(tk.Frame):
                         time.sleep(10)
             if "instagram" in self.post:
                 self.itv.set("Downloading the Reel from Instagram")
-                session_id = r"7250764387%3Atg8kJqBKbymLpU%3A3%3AAYe2hg0WpfUhI5uDTRchjdyUnZ1hhcgf5AvJUIXSHw"
                 headers = {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.74 Safari/537.36 Edg/79.0.309.43",
                     "cookie":f'sessionid={session_id};'}
