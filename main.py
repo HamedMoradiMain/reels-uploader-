@@ -2,7 +2,6 @@ try:
     import tkinter as tk
     from PIL import ImageTk,Image
     from tkinter import messagebox 
-    from modules.db import Database
     import webview as wb
     import time 
     import pathlib
@@ -11,9 +10,34 @@ try:
     from pytube import YouTube
     import threading
     import multiprocessing
+    from tkinter.filedialog import askopenfile
+    import re
+    import os # os module 
+    import sys # sys module
+    from bs4 import BeautifulSoup
+    from selenium import webdriver # webdriver
+    from selenium.webdriver import Chrome # chrome 
+    from selenium.webdriver.common.keys import Keys # keys
+    from selenium.webdriver.common.by import By # by
+    from selenium.webdriver.support.ui import WebDriverWait # webdriverwait
+    from selenium.webdriver.support import expected_conditions # expected conditions
+    from selenium.common.exceptions import TimeoutException # time out exception
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.support import expected_conditions as EC # options
+    from selenium.webdriver.common.proxy import Proxy, ProxyType
+    import time # time module 
+    import re
+    import json
+    import random
+    import requests # request img from web
+    from pathlib import Path
 except Exception as e:
     print(e)
 class Aplication(tk.Frame):
+    BASE_DIR = Path(".").resolve()
+    print(BASE_DIR)
+    accounts = []
+    posts = []
     def __init__(self,master):
         super().__init__(master)
         self.master = master
@@ -75,20 +99,66 @@ class Aplication(tk.Frame):
         self.pb = tk.Button(self.master, text="Post", command=lambda:self.post(), font="Raleway", bg="#20bebe", fg="white", height=2, width=31)
         self.pb.grid(row=7,column=0,columnspan=2,sticky=tk.W)
         # working logs 
+        self.itv = tk.StringVar()
         self.space = tk.Label(self.master, text="  ", font=("Raleway",12), bg="black", fg="white", height=2, width=15)
         self.space.grid(row=10,column=0)
-        self.instructions = tk.Label(root, text="Accounts Loaded!",  font=("Raleway",12), bg="black", fg="white", height=2, width=15)
+        self.instructions = tk.Label(root, textvariable=self.itv,  font=("Raleway",10), bg="black", fg="white", height=2, width=30)
+        self.itv.set("Ready to use!")
         self.instructions.grid(columnspan=3, column=0, row=11)
     def add_accounts(self):
-        print("Add Account!")
+        self.itv.set("Loading... ")
+        self.aat.set("loading...")
+        file = askopenfile(parent=root, mode='r', title="Choose a file", filetypes=[("Text file", "*.txt")])
+        if file:
+           for item in file:
+                if item not in self.accounts:
+                    self.accounts.append(item)
+                    print(item)
+        self.itv.set("Accounts Loaded Sucessfully!")
+        self.aat.set("Load Accounts")
     def add_posts(self):
-        print("Add Posts")
+        self.itv.set("Ready to use!")
+        self.itv.set("Loading... ")
+        self.apt.set("loading...")
+        file = askopenfile(parent=root, mode='r', title="Choose a file", filetypes=[("Text file", "*.txt")])
+        if file:
+           for item in file:
+                item = re.sub("\s{1,1000}","",item)
+                if item not in self.posts:
+                    self.posts.append(item)
+                    print(item)
+        self.apt.set("Load Posts")
+        self.itv.set("Posts Loaded Sucessfully!")
     def open_post(self):
-        print("Open Post")
-    def next_post(self):
-        print("Next Post")
+        self.opt.set("Next Post")
+        self.itv.set("Liked the post?")
+        self.post = random.choice(self.posts)
+        print(self.post)
+        def call_back():
+            with open("user_agent.txt","r") as f:
+                user_agents = [agent for agent in f.readlines()]
+                f.close()
+            options = Options()
+            options.add_argument(f'user-agent={random.choice(user_agents)}')
+            driver = webdriver.Chrome(executable_path=r"chromedriver.exe",options=options)
+            driver.set_window_size(500,700)
+            driver.get(self.post)
+            time.sleep(25)
+            driver.close()
+        p = threading.Thread(target=call_back)
+        p.start()
     def select_post(self):
-        print("Select Post")
+        self.opt.set("Open Post")
+        self.itv.set("Post Has Been Selected!")
+        def call_back():
+            if "youtube" in self.post:
+                self.itv.set("Downloading the Short from YouTube")
+            if "tiktok" in self.post:
+                self.itv.set("Downloading the Video from TikTok")
+            if "instagram" in self.post:
+                self.itv.set("Downloading the Reel from Instagram")
+        t = threading.Thread(target=call_back)
+        t.start()
     def start_editing(self):
         print("Start Editing")
     def load_song(self):
