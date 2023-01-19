@@ -31,6 +31,7 @@ try:
     import random
     import requests # request img from web
     from pathlib import Path
+    import instascrape
 except Exception as e:
     print(e)
 class Aplication(tk.Frame):
@@ -135,12 +136,12 @@ class Aplication(tk.Frame):
         self.post = random.choice(self.posts)
         print(self.post)
         def call_back():
-            with open("user_agent.txt","r") as f:
+            with open(f"{self.BASE_DIR}/resources/user_agent.txt","r") as f:
                 user_agents = [agent for agent in f.readlines()]
                 f.close()
             options = Options()
             options.add_argument(f'user-agent={random.choice(user_agents)}')
-            driver = webdriver.Chrome(executable_path=r"chromedriver.exe",options=options)
+            driver = webdriver.Chrome(executable_path=f"{self.BASE_DIR}/resources/chromedriver.exe",options=options)
             driver.set_window_size(500,700)
             driver.get(self.post)
             time.sleep(25)
@@ -150,22 +151,90 @@ class Aplication(tk.Frame):
     def select_post(self):
         self.opt.set("Open Post")
         self.itv.set("Post Has Been Selected!")
+        save_path = f"{self.BASE_DIR}/resources/raw_video/"
         def call_back():
             if "youtube" in self.post:
-                self.itv.set("Downloading the Short from YouTube")
+                try:
+                    self.itv.set("Downloading the Short from YouTube")
+                    os.system(f"yt-dlp --ffmpeg-location {self.BASE_DIR}/resources/ --path {save_path} -x --format mp4 {self.post}")
+                except Exception as e:
+                    print(e)
+                else:
+                    self.itv.set("Download Successful!")
             if "tiktok" in self.post:
                 self.itv.set("Downloading the Video from TikTok")
+                def downloadVide(link,id):
+                    cookies = {
+
+                    }
+                    headers = {
+
+                    }
+                    params = {
+                        'url':'dl',
+                    }
+                    data = {
+                        'id': link,
+                        'locale': 'en',
+                        'tt': 'NDZuMTU2',
+                    }
+                    response = requests.post('https://ssstik.io/abc', params=params, cookies=cookies, headers=headers, data=data)
+                    downloadSoup = BeautifulSoup(response.text, "html.parser")
+                    downloadLink = downloadSoup.a["href"]
+                    mp4File = urlopen(downloadLink)
+                    # Feel free to change the download directory
+                    with open(f"{self.BASE_DIR}/resources/raw_video/{id}.mp4", "wb") as output:
+                        while True:
+                            data = mp4File.read(4096)
+                            if data:
+                                output.write(data)
+                            else:
+                                break
+                    with open(f"{self.BASE_DIR}/resources/user_agent.txt","r") as f:
+                        user_agents = [agent for agent in f.readlines()]
+                        f.close()
+                    options = Options()
+                    options.add_argument(f'user-agent={random.choice(user_agents)}')
+                    driver = webdriver.Chrome(executable_path=f"{self.BASE_DIR}/resources/chromedriver.exe",options=options)
+                    driver.get(self.post)
+                    time.sleep(1)
+                    scroll_pause_time = 1
+                    screen_height = driver.execute_script("return window.screen.height;")
+                    i = 1
+                    while True:
+                        driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))  
+                        i += 1
+                        time.sleep(scroll_pause_time)
+                        scroll_height = driver.execute_script("return document.body.scrollHeight;")  
+                        if (screen_height) * i > scroll_height:
+                            break
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # this class may change, so make sure to inspect the page and find the correct class
+                    videos = soup.find_all("div", {"class": "tiktok-yz6ijl-DivWrapper"})
+                    print(len(videos))
+                    for index, video in enumerate(videos):
+                        downloadVideo(video.a["href"], index)
+                        time.sleep(10)
             if "instagram" in self.post:
                 self.itv.set("Downloading the Reel from Instagram")
+                session_id = r"7250764387%3Atg8kJqBKbymLpU%3A3%3AAYe2hg0WpfUhI5uDTRchjdyUnZ1hhcgf5AvJUIXSHw"
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.74 Safari/537.36 Edg/79.0.309.43",
+                    "cookie":f'sessionid={session_id};'}
+                google_reel=instascrape.Reel(self.post)
+                google_reel.scrape(headers=headers)
+                google_reel.download(fp=f"{save_path}reel.mp4")
+                self.itv.set("Download Successful!")
         t = threading.Thread(target=call_back)
         t.start()
-    def start_editing(self):
-        print("Start Editing")
     def load_song(self):
-        print("Load Song")
+        file = askopenfile(parent=root, mode='r', title="Choose a file", filetypes=[("Audio file", "*.mp3")])
+    def start_editing(self):
+            print("Start Editing")
     def post(self):
         print("Post")
-    
+    def reset(self):
+        pass
 if __name__ == "__main__":
     root = tk.Tk()
     bot = Aplication(master=root)
